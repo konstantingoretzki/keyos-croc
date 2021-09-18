@@ -1,8 +1,6 @@
 #!/bin/bash
 
 function quackWindows() {
-        # NUMLOCK only needed for us layout, get's ignored otherwise
-        Q NUMLOCK
 
         # open normal powershell (non admin)
         Q GUI r
@@ -30,14 +28,9 @@ function quackWindows() {
         Q STRING " 'done.txt'), 'done') ; Write-VolumeCache"
         Q STRING ' $usbPath[0] ; exit'
         Q ENTER
-
-        # cleanup numlock
-        Q NUMLOCK
 }
 
 function quackLinux() {
-        # NUMLOCK only needed for us layout, get's ignored otherwise
-        Q NUMLOCK
 
         # open terminal via search menu
         Q GUI
@@ -59,14 +52,9 @@ function quackLinux() {
         Q STRING "echo 'done' > /media/"
         Q STRING '$(users)/sneaky/done.txt && sync && exit'
         Q ENTER
-
-        # cleanup numlock
-        Q NUMLOCK
 }
 
 function quackMac() {
-        # NUMLOCK only needed for us layout, get's ignored otherwise
-        Q NUMLOCK
 
         # open mac terminal
         Q GUI SPACE
@@ -87,9 +75,6 @@ function quackMac() {
         Q STRING "echo 'done' > /Volumes/sneaky/done.txt"
         Q STRING " && sync && pkill -a Terminal"
         Q ENTER
-
-        # cleanup numlock
-        Q NUMLOCK
 }
 
 case $1 in

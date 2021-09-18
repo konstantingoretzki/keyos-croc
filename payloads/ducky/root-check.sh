@@ -1,6 +1,6 @@
+#!/bin/bash
+
 function quackWindows() {
-	# NUMLOCK only needed for us layout, get's ignored otherwise
-	Q NUMLOCK
 
 	Q GUI r
 	Q DELAY 500
@@ -23,14 +23,9 @@ function quackWindows() {
 	Q ENTER
 	Q ESCAPE
 	Q ESCAPE
-
-	# cleanup numlock
-	Q NUMLOCK
 }
 
 function quackLinux() {
-        # NUMLOCK only needed for us layout, get's ignored otherwise
-	Q NUMLOCK
 
         # open terminal via search menu
         Q GUI
@@ -49,14 +44,9 @@ function quackLinux() {
         Q DELAY 1500
         Q CONTROL d
 	Q CONTROL d
-
-        # cleanup numlock
-        Q NUMLOCK
 }
 
 function quackMac() {
-        # NUMLOCK only needed for us layout, get's ignored otherwise
-	Q NUMLOCK
 
         # open mac terminal
         Q GUI SPACE
@@ -74,9 +64,6 @@ function quackMac() {
 	Q CONTROL d
 	Q DELAY 500
 	Q GUI q
-
-        # cleanup numlock
-        Q NUMLOCK
 }
 
 case $1 in

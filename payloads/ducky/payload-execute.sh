@@ -3,8 +3,6 @@
 cmdArgs='cookies'
 
 function quackWindows() {
-        # NUMLOCK only needed for us layout, get's ignored otherwise
-        Q NUMLOCK
 
         if [ "$1" = "1" ]
         then
@@ -47,15 +45,9 @@ function quackWindows() {
         Q STRING ' $usbPath[0] ; exit}'
         Q ENTER
         Q ESCAPE
-
-        # cleanup numlock
-        Q NUMLOCK
-
 }
 
 function quackLinux() {
-        # NUMLOCK only needed for us layout, get's ignored otherwise
-        Q NUMLOCK
 
         # open terminal via search menu
         Q GUI
@@ -96,14 +88,9 @@ function quackLinux() {
 	# close terminal
         Q DELAY 500
         Q CONTROL d
-
-        # cleanup numlock
-        Q NUMLOCK
 }
 
 function quackMac() {
-        # NUMLOCK only needed for us layout, get's ignored otherwise
-        Q NUMLOCK
 
 	# open mac terminal
         Q GUI SPACE
@@ -134,9 +121,6 @@ function quackMac() {
 	Q ENTER
 	Q DELAY 500
 	Q GUI q
-
-        # cleanup numlock
-        Q NUMLOCK
 }
 
 case $1 in

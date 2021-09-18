@@ -1,3 +1,5 @@
+#!/bin/bash
+
 function quackWindows() {
 
 	# open PowerShell via run menu

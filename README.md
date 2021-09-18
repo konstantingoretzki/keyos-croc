@@ -158,11 +158,12 @@ Here are some examples for certain workflows:
 ## TODO
 ### Project specific
 - [ ] **Testing**: a project like this depends heavily on testing. Every system is different and even the slightest difference can determine if the executions fails or works.
-    - [ ] Test on macOS: this project is a port of the [aloa-extensions](https://github.com/konstantingoretzki/aloa-extensions) that I've created for the [P4wnP1 A.L.O.A.](https://github.com/RoganDawes/P4wnP1_aloa). While I've tested the original code on macOS, this is currently not the case for this port. It will be a while before I can get my hands on macOS hardware for testing again, so testers are (even on other platforms) welcome ;)
-- [ ] **US layout**: currently the num lock key has to be set to "on" to be able to use numbers. This is not ideal because the num lock state can not be obtained and thinking that the num lock is "on" could in reality mean that the lock is off. The layout file should be adjusted that numbers work without the need of the num lock key like it's the case e.g. for the German language file.
+    - [ ] **Test on macOS**: this project is a port of the [aloa-extensions](https://github.com/konstantingoretzki/aloa-extensions) that I've created for the [P4wnP1 A.L.O.A.](https://github.com/RoganDawes/P4wnP1_aloa). While I've tested the original code on macOS, this is currently not the case for this port. It will be a while before I can get my hands on macOS hardware for testing again, so testers are (even on other platforms) welcome ;)
+- [x] **US layout**: num lock had to be enabled to be able to type numbers on the us layout. Adjusting the order of the keycodes (prefer numbers over numpad numbers) fixes this.
+
 
 ### Key Croc
-- [ ] **Lock states**: make it possible to determine the locks states (e.g. num lock or caps lock), LED states should be readable on Windows and Linux. Maybe this is related to the broken altcodes function as it looks like the num lock would be read from the `/usr/local/croc/bin/QUACK`-file. Unfortunately the file won't be created and to be able to use the alt codes the code has to be comment out.
+- [ ] **Lock states**: make it possible to determine the locks states (e.g. num lock or caps lock), LED states should be readable on Windows and Linux. Maybe this is related to the broken altcodes function as it looks like the num lock would be read from a file. Unfortunately the file won't be created and to be able to use the alt codes the code has to be comment out.
 - [ ] **Jitter**: make it possible to add random delays to prevent triggering anomaly detection systems
 
 ### General
@@ -170,3 +171,7 @@ Here are some examples for certain workflows:
 
 ## Troubleshooting
 The main steps are logged inside `/root/log.txt`. If you experience any issues please take a look into this file. It can also help to run the main `/root/udisk/payloads/payload.sh` interactively to see what happens and which steps might fail. Adjusting the `payload.sh`-file to skip certain checks or stop after a specific detection can reduce the waiting time drastically.
+
+## Credits to
+- [lartsch](https://forums.hak5.org/profile/84374-lartsch/): fix [matchless payloads](https://forums.hak5.org/topic/55695-fix-for-matchless-payloads-not-running/) detection, temp. fix for the broken alt codes support
+- [emptyhen](https://github.com/emptyhen): fix [broken numbers](https://github.com/hak5/keycroc-payloads/pull/6) on 'us' layout if numlock is off

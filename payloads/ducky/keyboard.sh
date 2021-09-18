@@ -1,6 +1,6 @@
+#!/bin/bash
+
 function quackWindows() {
-	# NUMLOCK only needed for us layout, get's ignored otherwise
-	Q NUMLOCK
 
 	# open PowerShell via run menu
 	Q GUI r
@@ -25,14 +25,9 @@ function quackWindows() {
 	Q ENTER
 	Q ESCAPE
 	Q ESCAPE
-
-	# cleanup numlock
-	Q NUMLOCK
 }
 
 function quackLinux() {
-        # NUMLOCK only needed for us layout, get's ignored otherwise
-        Q NUMLOCK
 
         # open terminal via search menu
         Q GUI
@@ -52,14 +47,9 @@ function quackLinux() {
 	Q ENTER
 	Q STRING "exit"
 	Q ENTER
-
-        # cleanup numlock
-        Q NUMLOCK
 }
 
 function quackMac() {
-        # NUMLOCK only needed for us layout, get's ignored otherwise
-        Q NUMLOCK
 
         # open mac terminal
         Q GUI SPACE
@@ -83,9 +73,6 @@ function quackMac() {
 	# disable switching buttons via TAB
 	# --> create clean state
         Q CONTROL F7
-
-        # cleanup numlock
-        Q NUMLOCK
 }
 
 case $1 in
