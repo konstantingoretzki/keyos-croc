@@ -1,5 +1,5 @@
 # KeyOS Croc
-KeyOS Croc is an extension for the [Key Croc](https://hak5.org/products/key-croc) tool by Hak5. The main functionality of this extension is a basic operating system and keyboard layout detection by analyzing DHCP packets and "brute-forcing" (power)shell commands. Besides helper scripts are provided that allow root / admin right detection, easy binary execution (incl. command line arguments) and file extraction. An example for stealing the Firefox cookies.db using a golang executable and a HIDScript is given.
+KeyOS Croc is an extension for the [Key Croc](https://hak5.org/products/key-croc) tool by Hak5. The main functionality of this extension is a basic operating system and keyboard layout detection by analyzing DHCP packets and "brute-forcing" (power)shell commands. Besides helper scripts are provided that allow root / admin right detection, easy binary execution (incl. command line arguments) and file extraction. An example for stealing the Firefox cookies.db using a golang executable and a Ducky Script is given.
 
 ## Installation
 1. Connect Key Croc to Internet, connect via SSH
@@ -17,23 +17,27 @@ KeyOS Croc is an extension for the [Key Croc](https://hak5.org/products/key-croc
     - Connect to the Key Croc via SSH: `ssh root@X.X.X.X` (PW: `hak5croc`)
 2. Clone the repo (`git clone https://github.com/konstantingoretzki/keyos-croc`) and execute `install-keyos.sh` (`cd keyos-croc && chmod +x install-keyos.sh && ./install-keyos.sh`)
 3. Customize `/root/udisk/payloads/payload.sh` according to your wishes (see [settings](#settings))
-4. Reboot the device --> `reboot`
+4. Reboot the device (`reboot`)
+
+**Note:** Unfortunately, updating is not currently supported. In order to get the newest KeyOS Croc features you have to either make the changes by hand or reflash to the latest supported Hak5 version (`1.3_510`) and then run the the KeyOS Croc installation process.
 
 ## Usage
 Depending on your configuration (see [settings](#settings)) the framework can do the following things:
 1. Detect the OS
-2. Detect the used keyboard layout (on Windows you can also force to use the 'us' layout using alt codes)
+2. Detect the used keyboard layout
+	- A) Try to write a file to the mass storage using different keyboard layouts
+	- B) Windows only: force to use the 'us' layout using alt codes
 3. Check if higher execution rights are available
 4. Execute any payload (cross-platform): 
-    - Ducky Script snippets depending of the OS type, for your own take a look at `scripts/template.sh`
-    - Binaries (using a wrapper that can work with cmdArgs, use optional higher rights and chooses the correct file depending on the OS type)
+    - A) Ducky Script snippets depending of the OS type, for your own take a look at `scripts/template.sh`
+    - B) Binaries (using a wrapper that can work with cmdArgs, use optional higher rights and chooses the correct file depending on the OS type)
 5. Save extracted files from the mass drive to the `/root/udisk/loot`-location
 
 The LED will blink yellow if the framework is working. The LED will turn red if there has been an error (take a look into the `/root/log.txt`-file for debug information). If the set detections (optional) and the payload execution was successful the LED will turn green.
 
 ## How it works
 ### OS detection
-The OS detection works by analyzing sniffed DHCP packets (DHCPREQUEST and DHCPDISCOVER) via Python and scapy. This method allows a passive OS fingerprint. Compared to scanning the host with a tool like `nmap` this approach is also much faster and more reliable. Due to the usage of DHCP packets new OS types / versions can be easily add simply by tuning the used DHCP options. For more information take a look at [os-fingerprinting.md](./os-fingerprinting.md)
+The OS detection works by analyzing sniffed DHCP packets (DHCPREQUEST and DHCPDISCOVER) via Python and `scapy`. This method allows a passive OS fingerprint. Compared to scanning the host with a tool like `nmap` this approach is also much faster and more reliable. Due to the usage of DHCP packets new OS types / versions can be easily add simply by tuning the used DHCP options. For more information take a look at [os-fingerprinting.md](./os-fingerprinting.md)
 
 The following OS have been tested and can be recognized:
 - Microsoft Windows
@@ -54,7 +58,7 @@ While this approach isn't that fast, especially if you have a huge subset of pos
 The keyboard layouts for German, English and French are tested and work one after the other without any problems. Other subsets of layouts can be set but the layouts should be supported by the Key Croc framework (language files exist, needed keys are set and work). In addition the layouts of the subset should be tested to work even one after the other, especially if the prior try failed and could therefore leave an unclean state (e.g. the terminal window is still open and all subsequent commands fail).
 
 #### Alt codes
-On Windows alt codes can be used to write chars independent of the set keyboard layout. A [helper script](scripts/altcon.py) to convert a string to a sequence of Ducky Script alt codes can be used. However typing alt codes can be quite slow. A proposed and implemented solution is to force the Windows USB host to use the 'us' keyboard layout. This only works if num lock is off. To use this method set the `winForceUS` variable to 1. This only works if the OS is Windows (detected or `os` variable set). Keep in mind that the set layouts of the Windows host before will be overwritten!
+On Windows alt codes can be used to write chars independent of the set keyboard layout. A [helper script](scripts/altcon.py) to convert a string to a sequence of Ducky Script alt codes can be used. However typing alt codes can be quite slow. A proposed and implemented solution is to force the Windows USB host to use the 'us' keyboard layout. To use this method set the `winForceUS` variable to 1. This only works if the OS is Windows (detected or `os` variable set). Keep in mind that the set layouts of the Windows host before will be overwritten!
 
 While there is an alternative ([Unicode codes](https://help.ubuntu.com/stable/ubuntu-help/tips-specialchars.html.en)) on Ubuntu, this can not be used as also hex chars are needed.
 
@@ -163,8 +167,9 @@ Here are some examples for certain workflows:
 
 
 ### Key Croc
-- [ ] **Lock states**: make it possible to determine the locks states (e.g. num lock or caps lock), LED states should be readable on Windows and Linux. Maybe this is related to the broken altcodes function as it looks like the num lock would be read from a file. Unfortunately the file won't be created and to be able to use the alt codes the code has to be comment out.
+- [ ] **Lock state**: add a dedicated script to get the lock states (e.g. num lock or caps lock), LED states should be readable on Windows and Linux.
 - [ ] **Jitter**: make it possible to add random delays to prevent triggering anomaly detection systems
+- [x] **Altcodes**: fix `write_altcode`-function in order to work independent from the numlock state
 
 ### General
 - [ ] **HID on Wayland**: on Wayland keystroke injections (even with other frameworks like the [P4wnP1 A.L.O.A.](https://github.com/RoganDawes/P4wnP1_aloa) aren't possible, maybe Wayland is using other keycodes or handling input differently? research is needed
