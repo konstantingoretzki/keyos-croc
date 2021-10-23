@@ -21,7 +21,7 @@ pip3 install scapy
 # scripts
 echo -e "\nInstalling scripts ..."
 mkdir /root/scripts
-cp scripts/analyze-pcap.py scripts/image-helper.sh scripts/altcon.py /root/scripts/
+cp scripts/analyze-pcap.py scripts/image-helper.sh scripts/altcon.py scripts/wlanFencing.py /root/scripts/
 cp scripts/payload.sh /root/udisk/payloads/
 chmod 751 /root/scripts/*
 chmod 751 /root/udisk/payloads/payload.sh
