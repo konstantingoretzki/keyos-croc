@@ -23,19 +23,55 @@ KeyOS Croc is an extension for the [Key Croc](https://hak5.org/products/key-croc
 
 ## Usage
 Depending on your configuration (see [settings](#settings)) the framework can do the following things:
-1. Detect the OS
-2. Detect the used keyboard layout
+1. WLAN geofencing: wait for WLAN APs to be present or absent
+2. Detect the OS
+3. Detect the used keyboard layout
 	- A) Try to write a file to the mass storage using different keyboard layouts
 	- B) Windows only: force to use the 'us' layout using alt codes
-3. Check if higher execution rights are available
-4. Execute any payload (cross-platform): 
+4. Check if higher execution rights are available
+5. Execute any payload (cross-platform): 
     - A) Ducky Script snippets depending of the OS type, for your own take a look at `scripts/template.sh`
     - B) Binaries (using a wrapper that can work with cmdArgs, use optional higher rights and chooses the correct file depending on the OS type)
-5. Save extracted files from the mass drive to the `/root/udisk/loot`-location
+6. Save extracted files from the mass drive to the `/root/udisk/loot`-location
 
-The LED will blink yellow if the framework is working. The LED will turn red if there has been an error (take a look into the `/root/log.txt`-file for debug information). If the set detections (optional) and the payload execution was successful the LED will turn green.
+The LED will blink yellow if the framework is working. The LED will turn red if there has been an error (take a look into the `/root/udisk/keyos-log.txt`-file for debug information). If the set detections (optional) and the payload execution was successful the LED will turn green.
 
 ## How it works
+
+### WLAN geofencing
+The WLAN geofencing mode allows to only start with the execution of the detections and the payload if certain WLAN access points (2.4 GHz) are / aren't in range. This is done by scanning for access points in the range and parsing their SSIDs. The syntax is a bit complicated but very flexible and allows multiple devices sets that have to be present / absent.
+
+```
+## syntax examples for -a / -d
+
+# ./wlanFencing.py -a "AP1" -a "AP2"
+# --> AP1 or AP2
+
+# ./wlanFencing.py -a "AP1" "AP2"
+# --> AP1 and AP2
+
+# ./wlanFencing.py -a "AP1" "AP2" -a "AP3"
+# --> (AP1 and AP2) or AP3
+
+# ----------------------------------------------
+
+## real world examples
+
+# continue if AP1 is present
+# ./wlanFencing.py -a "AP1"
+
+# continue if AP1 and AP2 are present
+# ./wlanFencing.py -a "AP1" "AP2"
+
+# continue if AP1 is absent
+# ./wlanFencing.py -a "*" -d "AP1"
+
+# continue if AP1 and AP2 are absent
+# ./wlanFencing.py -a "*" -d "AP1" "AP2"
+```
+
+It is recommended to not use this feature if at the same time the Key Croc is connected to a WLAN access point and is accessed via SSH. Also keep in mind that scanned APs are heavily cached so it can take up to 30 seconds to detect their absence.
+
 ### OS detection
 The OS detection works by analyzing sniffed DHCP packets (DHCPREQUEST and DHCPDISCOVER) via Python and `scapy`. This method allows a passive OS fingerprint. Compared to scanning the host with a tool like `nmap` this approach is also much faster and more reliable. Due to the usage of DHCP packets new OS types / versions can be easily add simply by tuning the used DHCP options. For more information take a look at [os-fingerprinting.md](./os-fingerprinting.md)
 
@@ -69,6 +105,11 @@ You can set the features to use by adjusting the `/root/udisk/payloads/payload.s
 ################################################################################
 # configure detection (OS, layout and root) and payload
 ################################################################################
+
+# WLAN AP geofencing
+# set to 1 is active, 0 is deactivated
+# set the allowed / denied devices in the wlanFencing function
+doWlanFencing=0
 
 # OS detection
 # if the string is empty then script will try to determine the OS
@@ -175,8 +216,9 @@ Here are some examples for certain workflows:
 - [ ] **HID on Wayland**: on Wayland keystroke injections (even with other frameworks like the [P4wnP1 A.L.O.A.](https://github.com/RoganDawes/P4wnP1_aloa) aren't possible, maybe Wayland is using other keycodes or handling input differently? research is needed
 
 ## Troubleshooting
-The main steps are logged inside `/root/log.txt`. If you experience any issues please take a look into this file. It can also help to run the main `/root/udisk/payloads/payload.sh` interactively to see what happens and which steps might fail. Adjusting the `payload.sh`-file to skip certain checks or stop after a specific detection can reduce the waiting time drastically.
+The main steps are logged inside `/root/udisk/keyos-log.txt`. If you experience any issues please take a look into this file. It can also help to run the main `/root/udisk/payloads/payload.sh` interactively to see what happens and which steps might fail. Adjusting the `payload.sh`-file to skip certain checks or stop after a specific detection can reduce the waiting time drastically.
 
 ## Credits to
 - [lartsch](https://forums.hak5.org/profile/84374-lartsch/): fix [matchless payloads](https://forums.hak5.org/topic/55695-fix-for-matchless-payloads-not-running/) detection, temp. fix for the broken alt codes support
 - [emptyhen](https://github.com/emptyhen): fix [broken numbers](https://github.com/hak5/keycroc-payloads/pull/6) on 'us' layout if numlock is off
+- [marius56](https://github.com/marius56): idea to use nested lists for the wlanFencing-script
