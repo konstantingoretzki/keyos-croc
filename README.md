@@ -19,6 +19,8 @@ KeyOS Croc is an extension for the [Key Croc](https://hak5.org/products/key-croc
 3. Customize `/root/udisk/payloads/payload.sh` according to your wishes (see [settings](#settings))
 4. Reboot the device (`reboot`)
 
+**Note:** Unfortunately, updating is not currently supported. In order to get the newest KeyOS Croc features you have to either make the changes by hand or reflash to the latest supported Hak5 version (`1.3_510`) and then run the the KeyOS Croc installation process.
+
 ## Usage
 Depending on your configuration (see [settings](#settings)) the framework can do the following things:
 1. Detect the OS
