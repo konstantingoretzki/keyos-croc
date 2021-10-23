@@ -38,9 +38,8 @@ sed -i '/# start dhcp server/i  \\n\t\t# Added by KeyOS Croc\n\t\techo -n "sniff
 sed -i -r 's/timeout=[0-9]+/timeout=5/g' /usr/local/croc/bin/ATTACKMODE
 
 # fix broken alt codes
-# thanks to lartsch (https://forums.hak5.org/profile/84374-lartsch/) for this temporary fix
-sed -i '78,83s/^/#/' /usr/local/croc/bin/QUACK
-sed -i '/\/tmp\/hid_out/i # Comments by KeyOS Croc' /usr/local/croc/bin/QUACK
+sed -i '74,84d' /usr/local/croc/bin/QUACK
+sed -i '/numlock = False/a\ \ \ \ hidg_write(\[0, 0, 83, 0, 0, 0, 0, 0\])\n\ \ \ \ time\.sleep(0\.01)\n\ \ \ \ hidg_write(\[0, 0, 83, 0, 0, 0, 0, 0\])\n\n\ \ \ \ with open("\/dev\/hidg0", mode=\x27r\x27) as f:\n\ \ \ \ \ \ \ \ out = f\.read(2)\n\ \ \ \ \ \ \ \ while not out:\n\ \ \ \ \ \ \ \ \ \ \ \ out = f\.read(2)\n\n\ \ \ \ \ \ \ \ numlock = (int(out\.encode(\x27hex\x27), 16) \& 0b00001) == 0b00001\n' /usr/local/croc/bin/QUACK
 
 # payloads - binary
 echo -e "\nCopy binary payloads ..."
